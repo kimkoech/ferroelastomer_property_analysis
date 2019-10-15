@@ -1,0 +1,35 @@
+---
+title: "Property Analysis of Ferroelastomer"
+author: "Billy Koech"
+date: "10/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# import libraries
+library(tidyverse) # tidy
+library(janitor) # for cleaning names
+library(readxl) # package for importing data
+```
+
+## Permeability Analysis
+
+```{r}
+
+# load data
+
+file_path <- "../../Fe+Elastomer\ experiments/V2_experiment_design_mixing_ratios_by_volume.xlsx"
+
+ferroelastomer_data <- read_xlsx(file_path, sheet = 2,
+                             range = cell_rows(1:6)) %>% clean_names()
+
+
+# compute average and standard deviation
+
+avg_and_std <- ferroelastomer_data %>% mutate(avg = sum(x1_inductance_u_h_at_1khz, x2_inductance_u_h_at_1khz, x3_inductance_u_h_at_1khz, x4_inductance_u_h_at_1khz, x5_inductance_u_h_at_1khz)/5, standard_dev = sd(c(x1_inductance_u_h_at_1khz, x2_inductance_u_h_at_1khz, x3_inductance_u_h_at_1khz, x4_inductance_u_h_at_1khz, x5_inductance_u_h_at_1khz), na.rm = TRUE))
+
+ggplot(ferroelastomer_data, aes(x = volume_ratio, y = x1_inductance_u_h_at_1khz)) + geom_line()
+```
+
