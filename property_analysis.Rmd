@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 
 # import libraries
 library(tidyverse) # tidy
@@ -20,18 +20,36 @@ library(readxl) # package for importing data
 
 # load data
 
-file_path <- "../../Fe+Elastomer\ experiments/V2_experiment_design_mixing_ratios_by_volume.xlsx"
+file_path <- "~/Google\ Drive/for_Billy_Koech/from_Billy/Fe+Elastomer\ experiments/V2_experiment_design_mixing_ratios_by_volume.xlsx"
 
 ferroelastomer_data <- read_xlsx(file_path, sheet = 2,
-                             range = cell_rows(1:6)) %>% clean_names()
+                             range = cell_rows(1:16)) %>% clean_names()
 
 
-# compute average and standard deviation
+# gather the data
+gathered_data <-ferroelastomer_data %>% gather(c(x1_inductance_u_h_at_1khz, x2_inductance_u_h_at_1khz, x3_inductance_u_h_at_1khz, x4_inductance_u_h_at_1khz, x5_inductance_u_h_at_1khz), key = "quantity", value = "uH",na.rm = FALSE)
 
-#avg_and_std <- ferroelastomer_data %>% mutate(avg = mean(x1_inductance_u_h_at_1khz, x2_inductance_u_h_at_1khz, x3_inductance_u_h_at_1khz, x4_inductance_u_h_at_1khz, x5_inductance_u_h_at_1khz), standard_dev = sd(c(x1_inductance_u_h_at_1khz, x2_inductance_u_h_at_1khz, x3_inductance_u_h_at_1khz, x4_inductance_u_h_at_1khz, x5_inductance_u_h_at_1khz), na.rm = TRUE))
+# group by quantity and compute mean
+avg_and_std <- gathered_data %>% group_by(sample_number, volume_ratio, particle_size_microns) %>% summarise(avg = mean(uH), dev = sd(uH))
 
-avg_and_std2 <- ferroelastomer_data %>% summarise(avg = mean(x1_inductance_u_h_at_1khz, x2_inductance_u_h_at_1khz, x3_inductance_u_h_at_1khz, x4_inductance_u_h_at_1khz, x5_inductance_u_h_at_1khz))
+# plot raw data:
+ggplot(gathered_data,aes(x = volume_ratio, y = uH, group = particle_size_microns, color = as.factor(particle_size_microns))) + geom_line()
 
-ggplot(ferroelastomer_data, aes(x = volume_ratio, y = x1_inductance_u_h_at_1khz)) + geom_line()
+# grouped with SD
+ggplot(avg_and_std,aes(x = volume_ratio, y = avg, group = particle_size_microns, color = as.factor(particle_size_microns))) + geom_line() + geom_point() +
+  
+  labs(title = "Graph of Inductance against volume ratio", subtitle  = "Each line represents particles of different sizes", color = "Iron particle sizes") + 
+  xlab(label = "Percentage of Iron in sample") + 
+  ylab(label = "Inductance measured at 1KHz") +
+  geom_errorbar(aes(ymin=avg-dev, ymax=avg+dev), width=.01)
+
+
+# faceted with sd
+ggplot(avg_and_std,aes(x = volume_ratio, y = avg)) + facet_wrap(~particle_size_microns) + geom_line() + geom_point() +
+  
+  labs(title = "Graph of Inductance against volume ratio", subtitle  = "Each box represents particles of different sizes", color = "Iron particle sizes") + 
+  xlab(label = "Percentage of Iron in sample") + 
+  ylab(label = "Inductance measured at 1KHz") +
+  geom_errorbar(aes(ymin=avg-dev, ymax=avg+dev), width=.01)
 ```
 
