@@ -35,7 +35,7 @@ avg_and_std <- gathered_data %>% group_by(sample_number, volume_ratio, particle_
 # plot raw data:
 ggplot(gathered_data,aes(x = volume_ratio, y = uH, group = particle_size_microns, color = as.factor(particle_size_microns))) + geom_line()
 
-# grouped with SD
+# grouped with average and sd on a single plot, grouped by particle_size_microns
 ggplot(avg_and_std,aes(x = volume_ratio, y = avg, group = particle_size_microns, color = as.factor(particle_size_microns))) + geom_line() + geom_point() +
   
   labs(title = "Graph of Inductance against volume ratio", subtitle  = "Each line represents particles of different sizes", color = "Iron particle sizes") + 
@@ -44,7 +44,7 @@ ggplot(avg_and_std,aes(x = volume_ratio, y = avg, group = particle_size_microns,
   geom_errorbar(aes(ymin=avg-dev, ymax=avg+dev), width=.01)
 
 
-# faceted with sd
+# faceted by particle_size_microns
 ggplot(avg_and_std,aes(x = volume_ratio, y = avg)) + facet_wrap(~particle_size_microns) + geom_line() + geom_point() +
   
   labs(title = "Graph of Inductance against volume ratio", subtitle  = "Each box represents particles of different sizes", color = "Iron particle sizes") + 
