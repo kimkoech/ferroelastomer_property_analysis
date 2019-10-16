@@ -28,7 +28,9 @@ ferroelastomer_data <- read_xlsx(file_path, sheet = 2,
 
 # compute average and standard deviation
 
-avg_and_std <- ferroelastomer_data %>% mutate(avg = sum(x1_inductance_u_h_at_1khz, x2_inductance_u_h_at_1khz, x3_inductance_u_h_at_1khz, x4_inductance_u_h_at_1khz, x5_inductance_u_h_at_1khz)/5, standard_dev = sd(c(x1_inductance_u_h_at_1khz, x2_inductance_u_h_at_1khz, x3_inductance_u_h_at_1khz, x4_inductance_u_h_at_1khz, x5_inductance_u_h_at_1khz), na.rm = TRUE))
+#avg_and_std <- ferroelastomer_data %>% mutate(avg = mean(x1_inductance_u_h_at_1khz, x2_inductance_u_h_at_1khz, x3_inductance_u_h_at_1khz, x4_inductance_u_h_at_1khz, x5_inductance_u_h_at_1khz), standard_dev = sd(c(x1_inductance_u_h_at_1khz, x2_inductance_u_h_at_1khz, x3_inductance_u_h_at_1khz, x4_inductance_u_h_at_1khz, x5_inductance_u_h_at_1khz), na.rm = TRUE))
+
+avg_and_std2 <- ferroelastomer_data %>% summarise(avg = mean(x1_inductance_u_h_at_1khz, x2_inductance_u_h_at_1khz, x3_inductance_u_h_at_1khz, x4_inductance_u_h_at_1khz, x5_inductance_u_h_at_1khz))
 
 ggplot(ferroelastomer_data, aes(x = volume_ratio, y = x1_inductance_u_h_at_1khz)) + geom_line()
 ```
