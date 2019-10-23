@@ -47,7 +47,8 @@ avg_and_std <- gathered_data %>%
                              volume_ratio,
                              particle_size_microns,
                              mass_ratio, ecoflex,
-                             vacuumed) %>%
+                             vacuumed,
+                             repeated) %>%
                     summarise(avg = mean(uH), dev = sd(uH))
 
 # plot raw data:
@@ -105,11 +106,12 @@ avg_and_std <- gathered_data %>%
 
 
 # function to plot permeability against volume ratio
-plot_permeability_graph_by_volume <- function(ecoflex_n, vacuumed_bool){
+plot_permeability_graph_by_volume <- function(ecoflex_n, vacuumed_bool, include_repeat = 0){
   
   avg_and_std %>%
     filter(ecoflex == ecoflex_n,
-           vacuumed == vacuumed_bool) %>% 
+           vacuumed == vacuumed_bool,
+           repeated == include_repeat) %>% 
     ggplot(aes(x = volume_ratio,
                y = avg,
                group = particle_size_microns,
@@ -127,11 +129,12 @@ plot_permeability_graph_by_volume <- function(ecoflex_n, vacuumed_bool){
 
 
 # funcion to plot faceted permeability against volume ratio
-plot_permeability_faceted_by_volume <- function(ecoflex_n, vacuumed_bool){
+plot_permeability_faceted_by_volume <- function(ecoflex_n, vacuumed_bool, include_repeat = 0){
   
   avg_and_std %>%
     filter(ecoflex == ecoflex_n,
-           vacuumed == vacuumed_bool) %>% 
+           vacuumed == vacuumed_bool,
+           repeated == include_repeat) %>% 
     ggplot(aes(x = volume_ratio,
                y = avg)) +
     facet_wrap(~particle_size_microns) +
@@ -148,10 +151,11 @@ plot_permeability_faceted_by_volume <- function(ecoflex_n, vacuumed_bool){
 
 
 # function to plot permeability against mass_ratio
-plot_permeability_graph_by_mass <- function(ecoflex_n, vacuumed_bool){
+plot_permeability_graph_by_mass <- function(ecoflex_n, vacuumed_bool, include_repeat = 0){
   avg_and_std %>%
     filter(ecoflex == ecoflex_n,
-           vacuumed == vacuumed_bool) %>% 
+           vacuumed == vacuumed_bool,
+           repeated == include_repeat) %>% 
     ggplot(aes(x = mass_ratio,
                y = avg,
                group = particle_size_microns,
@@ -171,11 +175,12 @@ plot_permeability_graph_by_mass <- function(ecoflex_n, vacuumed_bool){
 
 
 # funcion to plot faceted permeability against mass ratio
-plot_permeability_faceted_by_mass <- function(ecoflex_n, vacuumed_bool){
+plot_permeability_faceted_by_mass <- function(ecoflex_n, vacuumed_bool, include_repeat = 0){
   
   avg_and_std %>%
     filter(ecoflex == ecoflex_n,
-           vacuumed == vacuumed_bool) %>%
+           vacuumed == vacuumed_bool,
+           repeated == include_repeat) %>%
     ggplot(aes(x = mass_ratio, y = avg)) +
     facet_wrap(~particle_size_microns) +
     geom_line() +
@@ -201,5 +206,24 @@ plot_permeability_faceted_by_mass(ecoflex_n = 30, vacuumed_bool = 0)
 plot_permeability_graph_by_volume(ecoflex_n = 20, vacuumed_bool = 0)
 ```
 
+## Summary of the results
 
+# Instructions:
+One to two page report
+
+* change inductance to permeability
+* summarise the results
+  * methodology
+    * sample fabrication
+    * material used
+    * table of particles, ecoflex, curing time, mean, median, standard deviation,
+    * measurement methods for the inductance
+  * Graphs 
+    * Graphs with volume ratio and inductance
+    * Graphs with volume ratio and inductance
+    * formula for L as a function of permeability:
+      * inducance for a cylinder
+      * inductance with a core
+    * then graphs of volume ration and permeability
+    * graphs of mass ratio and permeability 
 
