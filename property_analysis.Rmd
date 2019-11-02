@@ -25,8 +25,8 @@ file_path <- "~/Google\ Drive/for_Billy_Koech/from_Billy/Fe+Elastomer\ experimen
 
 ferroelastomer_data <- read_xlsx(file_path,
                                  sheet = 2,
-                                 range = cell_rows(1:36)) %>%
-                                  clean_names()
+                                 range = cell_rows(1:53)) %>%
+                                 clean_names()
 
 
 
@@ -50,6 +50,8 @@ avg_and_std <- gathered_data %>%
                              vacuumed,
                              repeated) %>%
                     summarise(avg = mean(uH), dev = sd(uH))
+
+
 
 # plot raw data:
 # ggplot(gathered_data,aes(x = volume_ratio,
@@ -105,98 +107,82 @@ avg_and_std <- gathered_data %>%
 #                     ymax=avg+dev), width=.01)
 
 
-# function to plot permeability against volume ratio
-plot_permeability_graph_by_volume <- function(ecoflex_n, vacuumed_bool, include_repeat = 0){
+# function to plot graph params:
+# plot_by: name of column to use for x axis => volume_ratio or mass_ratio
+# ecoflex_n : type of ecoflex
+# vacuumed_bool: whether to plot vacuumed or non_vacuumed
+# repeat_param: change to 1 to plot fialed values only
+# apply_func: fuction to change values in y axis
+# graph_name : goes on title and y axis label
+
+plot_graph <- function(plot_by, ecoflex_n, vacuumed_bool, repeat_param=0, apply_func, graph_name){
   
   avg_and_std %>%
     filter(ecoflex == ecoflex_n,
            vacuumed == vacuumed_bool,
-           repeated == include_repeat) %>% 
-    ggplot(aes(x = volume_ratio,
-               y = avg,
+           repeated == repeat_param) %>% 
+    ggplot(aes(x = eval(parse(text = plot_by)),
+               y = apply_func(avg),
                group = particle_size_microns,
                color = as.factor(particle_size_microns))) +
     geom_line() +
     geom_point() +
-    labs(title = paste("Graph of Inductance against volume ratio for Ecoflex ", ecoflex_n),
+    labs(title = paste("Graph of", graph_name, "against", plot_by, "for Ecoflex ", ecoflex_n),
          subtitle  = "Each line represents particles of different sizes",
          color = "Iron particle sizes") + 
-    xlab(label = "Percentage of Iron in sample by volume") + 
-    ylab(label = "Inductance measured at 1KHz") +
-    geom_errorbar(aes(ymin=avg-dev, ymax=avg+dev), width=.01)
+    xlab(label = paste("Percentage of Iron in sample by ", plot_by)) + 
+    ylab(label = graph_name) +
+    geom_errorbar(aes(ymin= apply_func(avg-dev), ymax= apply_func(avg+dev)), width=.01) +
+    geom_hline(yintercept = apply_func(412.7), color = "red") +
+    geom_hline(yintercept = apply_func(1076.2), color = "blue")
   
 }
 
-
-# funcion to plot faceted permeability against volume ratio
-plot_permeability_faceted_by_volume <- function(ecoflex_n, vacuumed_bool, include_repeat = 0){
+# faceted plot
+# same as plot_graph but makes facets instead
+plot_graph_faceted <- function(plot_by, ecoflex_n, vacuumed_bool, repeat_param=0, apply_func, graph_name){
   
   avg_and_std %>%
     filter(ecoflex == ecoflex_n,
            vacuumed == vacuumed_bool,
-           repeated == include_repeat) %>% 
-    ggplot(aes(x = volume_ratio,
-               y = avg)) +
+           repeated == repeat_param) %>% 
+    ggplot(aes(x = eval(parse(text = plot_by)),
+               y = apply_func(avg),
+               )) +
     facet_wrap(~particle_size_microns) +
     geom_line() +
     geom_point() +
-    labs(title = paste("Graph of Inductance against volume ratio for Ecoflex ", ecoflex_n),
-         subtitle  = "Each box represents particles of different sizes",
-         color = "Iron particle sizes") +
-    xlab(label = "Percentage of Iron in sample by volume") +
-    ylab(label = "Inductance measured at 1KHz") +
-    geom_errorbar(aes(ymin=avg-dev, ymax=avg+dev), width=.01)
-  
-}
-
-
-# function to plot permeability against mass_ratio
-plot_permeability_graph_by_mass <- function(ecoflex_n, vacuumed_bool, include_repeat = 0){
-  avg_and_std %>%
-    filter(ecoflex == ecoflex_n,
-           vacuumed == vacuumed_bool,
-           repeated == include_repeat) %>% 
-    ggplot(aes(x = mass_ratio,
-               y = avg,
-               group = particle_size_microns,
-               color = as.factor(particle_size_microns))) +
-    geom_line() +
-    geom_point() +
-    labs(title = paste("Graph of Inductance against mass ratio for Ecoflex", ecoflex_n),
-         subtitle  = "Each line represents particles of different sizes",
-         color = "Iron particle sizes") +
-    xlab(label = "Percentage of Iron in sample by mass") + 
-    ylab(label = "Inductance measured at 1KHz") +
-    geom_errorbar(aes(ymin=avg-dev,
-                      ymax=avg+dev), width=.01)
-  
-}
-
-
-
-# funcion to plot faceted permeability against mass ratio
-plot_permeability_faceted_by_mass <- function(ecoflex_n, vacuumed_bool, include_repeat = 0){
-  
-  avg_and_std %>%
-    filter(ecoflex == ecoflex_n,
-           vacuumed == vacuumed_bool,
-           repeated == include_repeat) %>%
-    ggplot(aes(x = mass_ratio, y = avg)) +
-    facet_wrap(~particle_size_microns) +
-    geom_line() +
-    geom_point() +
-    labs(title = paste("Graph of Inductance against mass ratio for Ecoflex", ecoflex_n),
+    labs(title = paste("Graph of", graph_name, "against", plot_by, "for Ecoflex ", ecoflex_n),
          subtitle  = "Each box represents particles of different sizes",
          color = "Iron particle sizes") + 
-    xlab(label = "Percentage of Iron in sample by mass") + 
-    ylab(label = "Inductance measured at 1KHz") +
-    geom_errorbar(aes(ymin=avg-dev,
-                      ymax=avg+dev), width=.01)
+    xlab(label = paste("Percentage of Iron in sample by ", plot_by)) + 
+    ylab(label = graph_name) +
+    geom_errorbar(aes(ymin= apply_func(avg-dev), ymax= apply_func(avg+dev)), width=.01) +
+    geom_hline(yintercept = apply_func(412.7), color = "red") +
+    geom_hline(yintercept = apply_func(1076.2), color = "blue")
   
+}
+
+L_to_miu_r <- function(L){
+  l <- 6.23 * 10^(-3)       # lenght of coil in meters
+  u_o <- 1.26 * 10^(-6)     # permeability of free space in T-m/At
+  N <- 100                  # number of turns
+  A <- pi * (5 * 10^(-3))^2 # cross sectional area of coil, radius = 5mm
+    
+  # calculate relative permeability
+  return((L * (10^(-6)) * l) / (u_o * (N^2) * A))
+}
+
+# function that does not alter input
+no_function <- function(input){
+  return(input)
 }
 
 # ecoflex 30 graphs
-plot_permeability_graph_by_volume(ecoflex_n = 30, vacuumed_bool = 0)
+plot_graph(plot_by = "volume_ratio", ecoflex_n = 30, vacuumed_bool = 0, repeat_param = 0, apply_func = L_to_miu_r, graph_name = "Relative Permeability")
+
+plot_graph_faceted(plot_by = "volume_ratio", ecoflex_n = 30, vacuumed_bool = 0, repeat_param=0, apply_func = L_to_miu_r, graph_name = "Relative Permeability")
+
 plot_permeability_faceted_by_volume(ecoflex_n = 30, vacuumed_bool = 0)
 plot_permeability_graph_by_mass(ecoflex_n = 30, vacuumed_bool = 0)
 plot_permeability_faceted_by_mass(ecoflex_n = 30, vacuumed_bool = 0)
@@ -204,6 +190,65 @@ plot_permeability_faceted_by_mass(ecoflex_n = 30, vacuumed_bool = 0)
 
 # ecoflex 20 graphs
 plot_permeability_graph_by_volume(ecoflex_n = 20, vacuumed_bool = 0)
+
+
+
+
+# faceted plot
+# same as plot_graph but makes facets instead
+vacuum_comparison_graph <- function(plot_by, ecoflex_n, repeat_param=0, apply_func, graph_name){
+  
+  avg_and_std %>%
+    filter(ecoflex == ecoflex_n,
+           repeated == repeat_param,
+           vacuumed != 2) %>% 
+    ggplot(aes(x = eval(parse(text = plot_by)),
+               y = apply_func(avg),
+               group = vacuumed,
+               color = as.factor(vacuumed))) +
+    facet_wrap(~particle_size_microns) +
+    geom_line() +
+    geom_point() +
+    labs(title = paste("Graph of", graph_name, "against", plot_by, "for Ecoflex ", ecoflex_n),
+         subtitle  = "Each box represents particles of different sizes",
+         color = "Vacuum state") + 
+    xlab(label = paste("Percentage of Iron in sample by ", plot_by)) + 
+    ylab(label = graph_name) +
+    geom_errorbar(aes(ymin= apply_func(avg-dev), ymax= apply_func(avg+dev)), width=.01) +
+    geom_hline(yintercept = apply_func(412.7), color = "red") +
+    geom_hline(yintercept = apply_func(1076.2), color = "blue")
+  
+}
+# function to plot permeability against volume ratio
+particle_size_plot_permeability_graph_by_volume <- function(ecoflex_n, repeat_param = 0, size_p){
+  
+  avg_and_std %>%
+    filter(ecoflex == ecoflex_n,
+           repeated == repeat_param,
+           particle_size_microns == size_p,
+           vacuumed != 2) %>% 
+    ggplot(aes(x = volume_ratio,
+               y = avg,
+               group = vacuumed,
+               color = as.factor(vacuumed))) +
+    geom_line() +
+    geom_point() +
+    labs(title = paste("Graph of Inductance against volume ratio for Ecoflex ", ecoflex_n),
+         subtitle  = paste("Plot for vaccumed and Non vacuumed for", size_p, " micron particles"),
+         color = "Vacuum state") + 
+    xlab(label = "Percentage of Iron in sample by volume") + 
+    ylab(label = "Inductance measured at 1KHz") +
+    geom_errorbar(aes(ymin=avg-dev, ymax=avg+dev), width=.01) +
+    geom_hline(yintercept = 412.7, color = "red") +
+    geom_hline(yintercept = 1076.2, color = "blue")
+  
+}
+
+
+# plot vacuumed samples and non vacuumed for particles size = 300
+particle_size_plot_permeability_graph_by_volume(ecoflex_n=30, repeat_param = 0, size_p=300)
+vacuum_comparison_graph(plot_by = "volume_ratio", ecoflex_n = 30, repeat_param=0, apply_func = L_to_miu_r, graph_name = "Relative permeability")
+
 ```
 
 ## Summary of the results
@@ -219,11 +264,16 @@ One to two page report
     * table of particles, ecoflex, curing time, mean, median, standard deviation,
     * measurement methods for the inductance
   * Graphs 
-    * Graphs with volume ratio and inductance
-    * Graphs with volume ratio and inductance
+    * Graphs with volume ratio and inductance/ permeabiltiy (two scales on the y axis)
+    * Graphs with volume ratio and inductance / permeabiltiy (two scales on the y axis)
     * formula for L as a function of permeability:
       * inducance for a cylinder
       * inductance with a core
     * then graphs of volume ration and permeability
     * graphs of mass ratio and permeability 
+    
+    
+    
+* Also talk about why the mass ratio graph appears how it does and what that means for the apperance of the volume ratio graph
+* 
 
